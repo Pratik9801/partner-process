@@ -7,7 +7,7 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
 
-	<name>partners-process-api01</name>
+	<name>partners-process-api</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<cloudHubDeployment>
+				   <cloudHubDeployment>
 						<uri>https://anypoint.mulesoft.com/</uri>
 						<username>nayan_project</username>
 						<password>Nayan211</password>
@@ -39,7 +39,7 @@
 						<muleVersion>4.3.0</muleVersion>
 						<workers>1</workers>
 						<workerType>Micro</workerType>
-						<applicationName>partnersprocessapi</applicationName>
+						<applicationName>partnerprocessapi</applicationName>
 						<objectStoreV2>true</objectStoreV2>
 					</cloudHubDeployment>
 					<classifier>mule-application</classifier>
@@ -95,15 +95,11 @@
         <snapshotRepository>
               <id>PartnerProcessRepo</id>
               <name>PartnerProcessRepo</name>
-              <url>http://localhost:8091/repository/PartnerProcessRepo/</url>
+              <url>http://localhost:8091/repository/PartnerProcessRepo//</url>
         </snapshotRepository>
      </distributionManagement>
+
 	<dependencies>
-		<dependency>
-			<groupId>org.sonarsource.scanner.maven</groupId>
-			<artifactId>sonar-maven-plugin</artifactId>
-			<version>3.6.1.1688</version>
-		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
@@ -155,7 +151,18 @@
 			<version>1.0.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>3.6.1.1688</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>3.6.1.1688</version>
+		</dependency>
 	</dependencies>
+	
 
 	<repositories>
 		<repository>
