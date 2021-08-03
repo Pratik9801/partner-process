@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="QueryParamSubFlow" doc:id="1115fe50-03f9-4162-8fe8-08197a89c119" >
+		<set-variable value="#[attributes.queryParams.CustID]" doc:name="CustID" doc:id="3c5e3aa0-81b2-4c3a-a47a-6cbc2f263e8d" variableName="CustID" />
+	</sub-flow>
+	<flow name="getAllPartnersFlow" doc:id="79cc333e-73be-45df-ac44-906568932cab" >
+		<flow-ref doc:name="QueryParamSubFlow" doc:id="212a6698-eb52-4ee2-aca2-084fa0e31902" name="QueryParamSubFlow" />
+		<os:store doc:id="38b6699c-cf80-421d-991b-991b85930d9e" key="array" doc:name="Empty Array">
+			<os:value ><![CDATA[#[[]]]]></os:value>
+		</os:store>
+		<http:request method="GET" doc:name="Orders" doc:id="7ed2b7a4-a32e-4f6e-a939-f80baefc5803" config-ref="HTTP_Request_configuration1" path="/orders"/>
+		<foreach doc:name="For Each" doc:id="65b4142a-4072-4214-83b5-595819340f99" >
+			<ee:transform doc:name="Orders Variable" doc:id="fa1eb474-8c8a-46df-8a2b-46cb58871d3c" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="orders" ><![CDATA[%dw 2.0
+output application/json
+---
+{	
+	OrderId: payload.OrderID,
+	ProdId: payload.ProductID,
+	OrderDate: payload.OrderDate,
+	ShippedDate: payload.ShippedDate,
+	Status: payload.Status
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<http:request method="GET" doc:name="Payments Request" doc:id="4603f2c6-d96e-4f55-a9e6-87ab867bfbc1" config-ref="HTTP_Request_configuration" path="/payments">
+			</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="3cf99a71-5854-4068-8386-cfce7632352b" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="payments" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	TransID: (payload.TransactionID)[0],
+	CustID: (payload.CustID)[0],
+	PaymentMode: (payload.PaymentMode)[0],
+	Amount: (payload.Amount)[0]
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="result variable" doc:id="e09d3895-1c82-4ac4-b9b3-ec15a165f49f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="result" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	OrderDetails:{
+			OrderID: vars.orders.OrderId,
+			ProductID: vars.orders.ProdId,
+			OrderDate: vars.orders.OrderDate,
+			shippedDate: vars.orders.ShippedDate,
+			Status: vars.orders.Status,
+			},
+	PaymentDetails:{
+			TransID: (vars.payments.TransID),
+			CustID: (vars.payments.CustID),
+			PaymentMode: (vars.payments.PaymentMode),
+			Amount: (vars.payments.Amount)
+}
+		
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<os:retrieve doc:name="Retrieve" doc:id="3421f110-0561-4a73-b3ed-4ca4e0c5e60d" key="array">
+			</os:retrieve>
+			<ee:transform doc:name="Transform Message" doc:id="2f8a21b9-b451-4ad8-af17-9aec53722b01" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<os:store doc:name="Store" doc:id="73ac586e-5ef3-405f-b12b-e8ea6c6643f3" key="array">
+				<os:value ><![CDATA[#[payload + vars.result]]]></os:value>
+			</os:store>
+		</foreach>
+		<os:retrieve doc:name="Retrieve" doc:id="8234df87-f07e-4d0f-8200-63fea6fd437f" key="array"/>
+	</flow>
+	<flow name="getPartnersByIDFlow" doc:id="003609e8-f8a1-4a56-8bb1-cea6b7e33b2c" >
+		<flow-ref doc:name="QueryParamSubFlow" doc:id="9cec4730-61c7-431c-9ee7-76d9cd6ca4e6" name="QueryParamSubFlow" />
+		<os:store doc:name="Empty Array" doc:id="8e27e3d9-f43f-4c56-b0b7-aefd40fb3a33" key="array" >
+			<os:value ><![CDATA[#[[]]]]></os:value>
+		</os:store>
+		<http:request method="GET" doc:name="Orders" doc:id="0a6e0be2-3afe-4c06-9a9d-15ee36962d8a" config-ref="HTTP_Request_configuration1" path="/orders/{ID}" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	ID : vars.ID
+}]]]></http:uri-params>
+		</http:request>
+		<foreach doc:name="For Each" doc:id="ddf08e0e-6761-464f-afd5-2151e6c167de" >
+			<ee:transform doc:name="Orders Variable" doc:id="58504d6c-44d1-4cde-9fb3-3ccb219ddb0d" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="orders" ><![CDATA[%dw 2.0
+output application/json
+---
+{	
+	OrderId: payload.OrderID,
+	ProdId: payload.ProductID,
+	OrderDate: payload.OrderDate,
+	ShippedDate: payload.ShippedDate,
+	Status: payload.Status
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<http:request method="GET" doc:name="Payments Request" doc:id="353f1139-9e20-4ea1-8ce1-d2614c3f76a5" config-ref="HTTP_Request_configuration" path="/payments" >
+			</http:request>
+			<ee:transform doc:name="Transform Message" doc:id="b390b234-23d9-4997-ac99-8a248b460320" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="payments" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	TransID: (payload.TransactionID)[0],
+	CustID: (payload.CustID)[0],
+	PaymentMode: (payload.PaymentMode)[0],
+	Amount: (payload.Amount)[0]
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="result variable" doc:id="8313531a-5c95-464b-85e0-3904803b54af" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="result" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	OrderDetails:{
+			OrderID: vars.orders.OrderId,
+			ProductID: vars.orders.ProdId,
+			OrderDate: vars.orders.OrderDate,
+			shippedDate: vars.orders.ShippedDate,
+			Status: vars.orders.Status,
+			},
+	PaymentDetails:{
+			TransID: (vars.payments.TransID),
+			CustID: (vars.payments.CustID),
+			PaymentMode: (vars.payments.PaymentMode),
+			Amount: (vars.payments.Amount)
+}
+		
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<os:retrieve doc:name="Retrieve" doc:id="5a3636ce-2b44-4b00-b725-4b9da98978e0" key="array" />
+			<ee:transform doc:name="Transform Message" doc:id="c5a66805-3211-433b-8fb1-1b7110d032f0" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<os:store doc:name="Store" doc:id="e8876389-57dd-42db-b9fc-71ff23cdfaae" key="array" >
+				<os:value ><![CDATA[#[payload + vars.result]]]></os:value>
+			</os:store>
+		</foreach>
+		<os:retrieve doc:name="Retrieve" doc:id="f047d2c0-06a7-4605-914e-dd4e1ca2c387" key="array" />
+	</flow>
+</mule>
